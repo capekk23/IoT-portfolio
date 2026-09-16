@@ -9,13 +9,12 @@ a složku `fotky/` pro skutečnou fotku zapojení.
 | --- | --- | --- |
 | Digitální | Tlačítko → LED | [digi/popis.md](digi/popis.md) |
 | Analogová | Potenciometr → jas LED (PWM) | [analog/popis.md](analog/popis.md) |
-| Sběrnice | DS18B20 (1-Wire) → MAX7219 (SPI), podmíněně | [sbernice/popis.md](sbernice/popis.md) |
+| Sběrnice | DS18B20 (1-Wire) → displej TM1637 | [sbernice/popis.md](sbernice/popis.md) |
 
-První dvě úlohy využívají uvedené součástky. U třetí je třeba ověřit
-logické úrovně MAX7219; displej je proto v kódu zatím vypnutý. Pro
-zamýšlené **I²C + SPI současně** nemáme potvrzenou I²C periferii: LCD
-nemá I²C adaptér a bezdrátové moduly nejsou identifikované. Aktuální kód
-proto používá variantu 1-Wire + SPI a I²C neimplementuje.
+Třetí úloha používá sběrnici 1-Wire pro čidlo DS18B20.
+Displej TM1637 ukazuje celé stupně a písmeno C.
+Má čtyři vodiče: VCC, GND, CLK a DIO; čidlo i displej napájíme z 3,3 V.
+Ovládání displeje je přímo v `main.py`, další soubor není potřeba.
 
 ## Spuštění
 

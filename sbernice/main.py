@@ -1,42 +1,51 @@
-from machine import Pin, SPI
-from time import sleep_ms
+from machine import Pin
+from time import sleep_ms, sleep_us
 import onewire
 import ds18x20
 
-# Zapnout po vyreseni zapojeni displeje podle popis.md.
-POUZIT_MATICI = False
-
+clk = Pin(4, Pin.OUT, value=1)
+dio = Pin(5, Pin.OPEN_DRAIN, Pin.PULL_UP, value=1)
 cidlo = ds18x20.DS18X20(onewire.OneWire(Pin(2)))
 adresa = cidlo.scan()[0]
+segmenty = dict(zip("0123456789 -C",
+                   (0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D,
+                    0x07, 0x7F, 0x6F, 0x00, 0x40, 0x39)))
 
 
-def zapis(registr, hodnota):
-    cs.value(0)
-    spi.write(bytes((registr, hodnota)))
-    cs.value(1)
+def odesli(bajty):
+    dio.off()  # Zacatek prenosu.
+    sleep_us(10)
+    for bajt in bajty:
+        for bit in range(8):
+            clk.off()
+            dio.value((bajt >> bit) & 1)
+            sleep_us(10)
+            clk.on()
+            sleep_us(10)
+        clk.off()
+        dio.on()  # Uvolnit DIO pro odpoved displeje.
+        sleep_us(10)
+        clk.on()
+        sleep_us(10)
+        clk.off()
+        sleep_us(10)
+    dio.off()
+    sleep_us(10)
+    clk.on()
+    sleep_us(10)
+    dio.on()  # Konec prenosu.
+    sleep_us(10)
 
 
-if POUZIT_MATICI:
-    cs = Pin(17, Pin.OUT, value=1)
-    spi = SPI(0, baudrate=500_000, polarity=0, phase=0,
-              sck=Pin(18), mosi=Pin(19), miso=Pin(16))
-    zapis(0x0C, 0)  # Displej vypnout pri nastavovani.
-    zapis(0x0F, 0)  # Vypnout test.
-    zapis(0x09, 0)  # Ovladat jednotlive LED.
-    zapis(0x0B, 7)  # Pouzit vsech osm radku.
-    zapis(0x0A, 1)  # Nizky jas.
-    for radek in range(1, 9):
-        zapis(radek, 0)
-    zapis(0x0C, 1)  # Displej zapnout.
+sleep_ms(50)
+odesli([0x40])  # Zapis postupne do vsech ctyr mist.
+odesli([0xC0, 0, 0, 0, 0])
+odesli([0x89])  # Zapnout displej, nizky jas.
 
 while True:
     cidlo.convert_temp()
     sleep_ms(750)
-    teplota = cidlo.read_temp(adresa)
-    print("Teplota:", teplota, "C")
-
-    if POUZIT_MATICI:
-        pocet = int(teplota / 5 + 0.5)  # Jeden radek = 5 stupnu.
-        for radek in range(1, 9):
-            zapis(radek, 255 if radek <= pocet else 0)
+    teplota = round(cidlo.read_temp(adresa))
+    text = "%3dC" % teplota
+    odesli([0xC0] + [segmenty[znak] for znak in text])
     sleep_ms(250)
