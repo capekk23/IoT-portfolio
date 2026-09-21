@@ -1,51 +1,98 @@
-from machine import Pin
-from time import sleep_ms, sleep_us
-import onewire
-import ds18x20
+from machine import Pin, SPI
+from time import sleep_ms
+from random import getrandbits
 
-clk = Pin(4, Pin.OUT, value=1)
-dio = Pin(5, Pin.OPEN_DRAIN, Pin.PULL_UP, value=1)
-cidlo = ds18x20.DS18X20(onewire.OneWire(Pin(2)))
-adresa = cidlo.scan()[0]
-segmenty = dict(zip("0123456789 -C",
-                   (0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D,
-                    0x07, 0x7F, 0x6F, 0x00, 0x40, 0x39)))
+# Pin(...) pouziva cisla GP, ne fyzicka cisla pinu.
+spi = SPI(0, baudrate=100_000, polarity=0, phase=0,
+          sck=Pin(2), mosi=Pin(3))
+cs = Pin(1, Pin.OUT, value=1)
+tlacitko = Pin(14, Pin.IN, Pin.PULL_UP)
+
+# Osm radku kazde cislice; jednicka znamena svitici bod.
+cislice = (
+    (0b00000000,
+     0b00010000,
+     0b00110000,
+     0b00010000,
+     0b00010000,
+     0b00010000,
+     0b00010000,
+     0b00111000),
+    (0b00000000,
+     0b00111000,
+     0b01000100,
+     0b00000100,
+     0b00001000,
+     0b00010000,
+     0b00100000,
+     0b01111100),
+    (0b00000000,
+     0b00111000,
+     0b01000100,
+     0b00000100,
+     0b00011000,
+     0b00000100,
+     0b01000100,
+     0b00111000),
+    (0b00000000,
+     0b00001000,
+     0b00011000,
+     0b00101000,
+     0b01001000,
+     0b01111100,
+     0b00001000,
+     0b00001000),
+    (0b00000000,
+     0b01111100,
+     0b01000000,
+     0b01000000,
+     0b01111000,
+     0b00000100,
+     0b01000100,
+     0b00111000),
+    (0b00000000,
+     0b00111000,
+     0b01000000,
+     0b01000000,
+     0b01111000,
+     0b01000100,
+     0b01000100,
+     0b00111000),
+)
 
 
-def odesli(bajty):
-    dio.off()  # Zacatek prenosu.
-    sleep_us(10)
-    for bajt in bajty:
-        for bit in range(8):
-            clk.off()
-            dio.value((bajt >> bit) & 1)
-            sleep_us(10)
-            clk.on()
-            sleep_us(10)
-        clk.off()
-        dio.on()  # Uvolnit DIO pro odpoved displeje.
-        sleep_us(10)
-        clk.on()
-        sleep_us(10)
-        clk.off()
-        sleep_us(10)
-    dio.off()
-    sleep_us(10)
-    clk.on()
-    sleep_us(10)
-    dio.on()  # Konec prenosu.
-    sleep_us(10)
+def odesli(registr, hodnota):
+    cs.off()
+    spi.write(bytes((registr, hodnota)))
+    cs.on()
+
+
+def zobraz(cislo):
+    for radek in range(8):
+        odesli(radek + 1, cislice[cislo - 1][radek])
 
 
 sleep_ms(50)
-odesli([0x40])  # Zapis postupne do vsech ctyr mist.
-odesli([0xC0, 0, 0, 0, 0])
-odesli([0x89])  # Zapnout displej, nizky jas.
+odesli(0x0F, 0)  # Vypnout test vsech LED.
+odesli(0x0C, 0)  # Zhasnout behem nastaveni.
+odesli(0x09, 0)  # Vlastni obrazce, bez dekodovani cislic.
+odesli(0x0B, 7)  # Zobrazovat vsech osm radku.
+odesli(0x0A, 1)  # Nizky jas.
+zobraz(1)
+odesli(0x0C, 1)  # Zapnout displej.
 
 while True:
-    cidlo.convert_temp()
-    sleep_ms(750)
-    teplota = round(cidlo.read_temp(adresa))
-    text = "%3dC" % teplota
-    odesli([0xC0] + [segmenty[znak] for znak in text])
-    sleep_ms(250)
+    if tlacitko.value() == 0:
+        sleep_ms(20)  # Ustaleni kontaktu po stisku.
+        if tlacitko.value() == 0:
+            for krok in range(12):
+                cislo = getrandbits(3)
+                while cislo == 0 or cislo == 7:
+                    cislo = getrandbits(3)
+                zobraz(cislo)
+                sleep_ms(50 + krok * 15)
+            # Posledni cislo zustane svitit; drzeni nespusti dalsi hod.
+            while tlacitko.value() == 0:
+                sleep_ms(10)
+            sleep_ms(20)
+    sleep_ms(10)
