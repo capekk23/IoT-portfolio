@@ -216,4 +216,4 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-digi/.DS_Store
+01-digi/.DS_Store
