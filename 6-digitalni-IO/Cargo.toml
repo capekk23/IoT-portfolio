@@ -1,0 +1,11 @@
+[package]
+name = "rpi-digi"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "rpi-digi"
+path = "main.rs"
+
+[dependencies]
+rppal = "=0.22.1"
