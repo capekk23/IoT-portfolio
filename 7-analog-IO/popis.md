@@ -32,3 +32,7 @@ g++ -O2 main.cpp -llgpio -o analog-io
 Program zároveň běží jako malý web na portu 8007: `GET /stav` vrátí hodnotu potenciometru, čas nabíjení a jas LED, `POST /pot/50` nastaví logický potenciometr.
 Dashboard ([dashboard/index.html](../dashboard/index.html)) ukazuje jas LED a posuvníkem nahrazuje potenciometr; pohnutí skutečným potenciometrem vrátí řízení zpět jemu.
 Vždy běží jen jedna úloha, takže před spuštěním zastav program úlohy 6. Program ukončíš pomocí Ctrl+C.
+
+![Zapojení](fotky/IMG_3384.jpg)
+
+![Úloha 7 na dashboardu](fotky/dashboard.png)

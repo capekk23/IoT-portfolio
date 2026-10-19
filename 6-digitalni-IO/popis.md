@@ -32,3 +32,5 @@ Program zároveň běží jako malý web na portu 8006: `GET /stav` vrátí stav
 Dashboard ([dashboard/index.html](../dashboard/index.html)) z něj čte stav LED a tlačítkem na stránce mění rychlost stejně jako skutečným tlačítkem.
 
 [Video zapojení](fotky/IMG_3382.MOV)
+
+![Zapojení](fotky/IMG_3383.jpg)
