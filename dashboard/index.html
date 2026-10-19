@@ -37,6 +37,7 @@
       cursor: pointer;
     }
     button:active { transform: scale(.97); }
+    input[type=range] { width: 100%; accent-color: #222; }
   </style>
 </head>
 <body>
@@ -50,7 +51,13 @@
         <p class="interval" id="interval">Program neběží</p>
         <button id="tlacitko">Stisknout tlačítko</button>
       </div>
-      <div class="uloha brzy"><h2>7 · Analog I/O</h2>brzy</div>
+      <div class="uloha">
+        <h2>7 · Analog I/O</h2>
+        <span class="jazyk">C++ · fake analog input</span>
+        <div class="leds"><span class="led on" id="a-led1"></span><span class="led on" id="a-led2"></span></div>
+        <p class="interval" id="a-text">Program neběží</p>
+        <input type="range" min="0" max="100" value="0" id="a-pot">
+      </div>
       <div class="uloha brzy"><h2>8 · Sběrnice I/O</h2>brzy</div>
       <div class="uloha brzy"><h2>9 · RPi + Pico sběrnice</h2>brzy</div>
       <div class="uloha brzy"><h2>10 · RPi + Pico bezdrátově</h2>brzy</div>
@@ -75,6 +82,29 @@
 
     document.getElementById("tlacitko").onclick = () => fetch(uloha6 + "/tlacitko", { method: "POST" });
     cti();
+
+    // Program úlohy 7 běží na portu 8007. Posuvník funguje jako logický potenciometr.
+    const uloha7 = "http://" + (location.hostname || "127.0.0.1") + ":8007";
+    const pot = document.getElementById("a-pot");
+    let tahnu = false;
+
+    async function cti7() {
+      try {
+        const stav = await (await fetch(uloha7 + "/stav")).json();
+        document.getElementById("a-led1").style.opacity = 0.15 + stav.led1 / 120;
+        document.getElementById("a-led2").style.opacity = 0.15 + stav.led2 / 120;
+        document.getElementById("a-text").textContent =
+          "Potenciometr " + stav.potenciometr + " % · nabití " + stav.cas + " µs" + (stav.logicky ? " · z dashboardu" : "");
+        if (!tahnu) pot.value = stav.potenciometr;
+      } catch {
+        document.getElementById("a-text").textContent = "Program neběží";
+      }
+      setTimeout(cti7, 100);
+    }
+
+    pot.oninput = () => { tahnu = true; fetch(uloha7 + "/pot/" + pot.value, { method: "POST" }); };
+    pot.onchange = () => { tahnu = false; };
+    cti7();
   </script>
 </body>
 </html>
