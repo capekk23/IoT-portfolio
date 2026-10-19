@@ -38,4 +38,4 @@
 - Deska: Raspberry Pi Pico WH (RP2040, 2022), MicroPython.
 - Jde o školní úlohy, ne produkční software. Prioritou je jednoduché a funkční řešení.
 - Používej dostupné součástky; další nákupy nepředpokládej. Počítej s omezeným počtem vodičů a místem na breadboardu.
-- Aktuální složky jsou `digi/`, `analog/` a `sbernice/`. Konkrétní stav a zapojení vždy zjisti z aktuálních souborů.
+- Složky úloh mají číselný prefix `01-` až `10-`, společný dashboard je v `dashboard/`. Konkrétní stav a zapojení vždy zjisti z aktuálních souborů.
