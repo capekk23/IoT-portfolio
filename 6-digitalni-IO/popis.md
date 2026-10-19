@@ -28,4 +28,7 @@ cargo run --release --locked
 Spouštěj jen jednu instanci programu. Pokud ještě běží naše služba z ladění, nejdřív ji zastav příkazem `systemctl --user stop rpi-digi`.
 Program ukončíš pomocí Ctrl+C.
 
+Program zároveň běží jako malý web na portu 8006: `GET /stav` vrátí stav LED a interval, `POST /tlacitko` stiskne logické tlačítko.
+Dashboard ([dashboard/index.html](../dashboard/index.html)) z něj čte stav LED a tlačítkem na stránce mění rychlost stejně jako skutečným tlačítkem.
+
 [Video zapojení](fotky/IMG_3382.MOV)

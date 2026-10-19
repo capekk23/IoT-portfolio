@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google" content="notranslate">
+  <title>IoT · Raspberry Pi</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 48px 24px;
+      background: #f4f3ee;
+      color: #222;
+      font-family: system-ui, sans-serif;
+    }
+    main { max-width: 900px; margin: 0 auto; }
+    h1 { margin: 0 0 32px; font-size: 32px; letter-spacing: -.03em; }
+    h1 span { color: #999; font-weight: 400; }
+    .ulohy { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .uloha { background: #fff; border-radius: 18px; padding: 22px; }
+    .uloha.brzy { background: transparent; border: 2px dashed #ddd; color: #aaa; }
+    .uloha h2 { margin: 0 0 4px; font-size: 18px; }
+    .jazyk { color: #999; font-size: 14px; }
+    .leds { display: flex; gap: 14px; margin: 22px 0 12px; }
+    .led { width: 34px; height: 34px; border-radius: 50%; background: #e6dcdc; }
+    .led.on { background: #f33; box-shadow: 0 0 18px #f33; }
+    .interval { margin: 0 0 18px; color: #666; }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: 0;
+      border-radius: 12px;
+      background: #222;
+      color: #fff;
+      font: 600 16px system-ui, sans-serif;
+      cursor: pointer;
+    }
+    button:active { transform: scale(.97); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>IoT dashboard <span>· Raspberry Pi 4</span></h1>
+    <div class="ulohy">
+      <div class="uloha">
+        <h2>6 · Digitální I/O</h2>
+        <span class="jazyk">Rust</span>
+        <div class="leds"><span class="led" id="led1"></span><span class="led" id="led2"></span></div>
+        <p class="interval" id="interval">Program neběží</p>
+        <button id="tlacitko">Stisknout tlačítko</button>
+      </div>
+      <div class="uloha brzy"><h2>7 · Analog I/O</h2>brzy</div>
+      <div class="uloha brzy"><h2>8 · Sběrnice I/O</h2>brzy</div>
+      <div class="uloha brzy"><h2>9 · RPi + Pico sběrnice</h2>brzy</div>
+      <div class="uloha brzy"><h2>10 · RPi + Pico bezdrátově</h2>brzy</div>
+    </div>
+  </main>
+
+  <script>
+    // Program úlohy 6 běží na stejném Pi na portu 8006.
+    const uloha6 = "http://" + (location.hostname || "127.0.0.1") + ":8006";
+
+    async function cti() {
+      try {
+        const stav = await (await fetch(uloha6 + "/stav")).json();
+        document.getElementById("led1").classList.toggle("on", stav.led1);
+        document.getElementById("led2").classList.toggle("on", stav.led2);
+        document.getElementById("interval").textContent = "Interval " + stav.interval + " ms";
+      } catch {
+        document.getElementById("interval").textContent = "Program neběží";
+      }
+      setTimeout(cti, 100);
+    }
+
+    document.getElementById("tlacitko").onclick = () => fetch(uloha6 + "/tlacitko", { method: "POST" });
+    cti();
+  </script>
+</body>
+</html>
