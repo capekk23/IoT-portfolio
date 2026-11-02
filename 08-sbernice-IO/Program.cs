@@ -112,8 +112,9 @@ double Measure()
     if (!WaitFor(PinValue.High, timer)) return -1;
     var start = timer.Elapsed.TotalMicroseconds;
     if (!WaitFor(PinValue.Low, timer)) return -1;
-    // 58 us of echo is 1 cm there and back.
-    return (timer.Elapsed.TotalMicroseconds - start) / 58;
+    // 58 us of echo is 1 cm there and back. Under 2 cm the sensor cannot measure, so it is a miss.
+    var distance = (timer.Elapsed.TotalMicroseconds - start) / 58;
+    return distance < 2 ? -1 : distance;
 }
 
 // GET /stav returns the state as JSON, POST /vzdalenost/30 fakes 30 cm for 3 s.
@@ -133,10 +134,15 @@ new Thread(() =>
         }
         var json = $"{{\"cm\":{cm:0.0},\"led\":{lit},\"lcd\":[\"{lcdLines[0]}\",\"{lcdLines[1]}\"],\"logicka\":{(DateTime.Now < fakeUntil ? "true" : "false")}}}";
         var body = Encoding.UTF8.GetBytes(json);
-        ctx.Response.ContentType = "application/json";
-        ctx.Response.AddHeader("Access-Control-Allow-Origin", "*");
-        ctx.Response.OutputStream.Write(body);
-        ctx.Response.Close();
+        // The browser sometimes drops the request; that must not stop the program.
+        try
+        {
+            ctx.Response.ContentType = "application/json";
+            ctx.Response.AddHeader("Access-Control-Allow-Origin", "*");
+            ctx.Response.OutputStream.Write(body);
+            ctx.Response.Close();
+        }
+        catch (Exception) { }
     }
 }).Start();
 
@@ -166,11 +172,15 @@ for (int r = 1; r <= 8; r++)
 Matrix(0x0C, 1);  // Matrix on.
 
 Print(0, "Vzdalenost:");
+int misses = 0;
 
 while (true)
 {
     // The dashboard slider replaces the sensor for 3 s after the last move.
-    cm = DateTime.Now < fakeUntil ? fakeCm : Measure();
+    double now = DateTime.Now < fakeUntil ? fakeCm : Measure();
+    // A single missed echo keeps the last value; out of range only after 5 misses in a row.
+    misses = now < 0 ? misses + 1 : 0;
+    if (now >= 0 || misses >= 5) cm = now;
     int target;
     if (cm < 0)
     {
