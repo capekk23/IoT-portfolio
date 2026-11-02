@@ -17,3 +17,5 @@ pin 18 (GND / −) ── bzučák (−)
 ```
 
 Čísla pinů Pica v zapojení jsou **fyzická**, v programu `Pin(...)` používá číslo **GP**.
+
+[Video zapojení](fotky/IMG_3784.MOV)
