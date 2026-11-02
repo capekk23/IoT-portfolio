@@ -30,6 +30,6 @@ while True:
         state ^= 1
         LED.value(state)
         BUZZER.value(1)
-        time.sleep_ms(100)
+        time.sleep_ms(400)
         BUZZER.value(0)
         print("Toggle from", sender, "LED state:", state)
