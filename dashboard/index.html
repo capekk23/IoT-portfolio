@@ -9,102 +9,229 @@
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 48px 24px;
+      min-height: 100vh;
+      display: grid;
+      align-content: center;
+      padding: 56px 32px;
       background: #f4f3ee;
-      color: #222;
+      color: #1d1d1b;
       font-family: system-ui, sans-serif;
     }
-    main { max-width: 900px; margin: 0 auto; }
-    h1 { margin: 0 0 32px; font-size: 32px; letter-spacing: -.03em; }
-    h1 span { color: #999; font-weight: 400; }
-    .ulohy { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-    .uloha { background: #fff; border-radius: 18px; padding: 22px; }
-    .uloha.brzy { background: transparent; border: 2px dashed #ddd; color: #aaa; }
-    .uloha h2 { margin: 0 0 4px; font-size: 18px; }
-    .jazyk { color: #999; font-size: 14px; }
-    .leds { display: flex; gap: 14px; margin: 22px 0 12px; }
-    .led { width: 34px; height: 34px; border-radius: 50%; background: #e6dcdc; }
-    .led.on { background: #f33; box-shadow: 0 0 18px #f33; }
-    .interval { margin: 0 0 18px; color: #666; }
+    main { max-width: 1280px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 36px; }
+    h1 { margin: 0; font-size: 44px; letter-spacing: -.04em; }
+    h1 span { color: #a5a49d; font-weight: 400; }
+    .hodiny { color: #8b8a83; font-size: 18px; font-variant-numeric: tabular-nums; text-align: right; }
+    .hodiny b { display: block; color: #1d1d1b; font-size: 34px; letter-spacing: -.03em; }
+
+    .ulohy { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 20px; }
+    .uloha {
+      position: relative;
+      background: #fff;
+      border: 2px solid transparent;
+      border-radius: 22px;
+      padding: 26px;
+      opacity: .55;
+      transition: opacity .3s, border-color .3s, box-shadow .3s;
+    }
+    .uloha.bezi { opacity: 1; border-color: #1d1d1b; box-shadow: 0 18px 40px #1d1d1b14; }
+    .uloha.brzy { background: transparent; border: 2px dashed #dcdbd3; color: #a5a49d; opacity: 1; }
+    .uloha h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.02em; }
+    .jazyk { color: #8b8a83; font-size: 14px; }
+    .stav {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      padding: 5px 11px;
+      border-radius: 20px;
+      background: #eeede7;
+      color: #8b8a83;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .bezi .stav { background: #1d1d1b; color: #fff; }
+    .bezi .stav::before { content: "● "; color: #4ade80; }
+    .text { margin: 0 0 18px; color: #5f5e58; font-variant-numeric: tabular-nums; }
+
+    .leds { display: flex; gap: 16px; margin: 26px 0 14px; }
+    .led { width: 40px; height: 40px; border-radius: 50%; background: #ece4e3; }
+    .led.on { background: #f33; box-shadow: 0 0 20px #f33; }
+
+    .displeje { display: flex; gap: 16px; align-items: center; margin: 24px 0 14px; }
+    .lcd {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #3c6fd0;
+      box-shadow: inset 0 0 0 5px #24438a;
+      color: #e8f0ff;
+      font: 600 15px/1.35 ui-monospace, monospace;
+      white-space: pre;
+    }
+    .matice {
+      display: grid;
+      grid-template-columns: repeat(8, 9px);
+      gap: 3px;
+      padding: 8px;
+      border-radius: 6px;
+      background: #1d1d1b;
+    }
+    .matice span { width: 9px; height: 9px; border-radius: 50%; background: #3a2422; }
+    .matice span.on { background: #ff4b3e; box-shadow: 0 0 5px #ff4b3e; }
+
     button {
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       border: 0;
       border-radius: 12px;
-      background: #222;
+      background: #1d1d1b;
       color: #fff;
       font: 600 16px system-ui, sans-serif;
       cursor: pointer;
     }
     button:active { transform: scale(.97); }
-    input[type=range] { width: 100%; accent-color: #222; }
+    input[type=range] { width: 100%; accent-color: #1d1d1b; }
+
+    @media (max-width: 600px) {
+      body { padding: 32px 16px; }
+      h1 { font-size: 32px; }
+      .hodiny { display: none; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1>IoT dashboard <span>· Raspberry Pi 4</span></h1>
+    <header>
+      <h1>IoT dashboard <span>· Raspberry Pi 4</span></h1>
+      <div class="hodiny"><b id="cas"></b>sk1-green</div>
+    </header>
     <div class="ulohy">
-      <div class="uloha">
+      <div class="uloha" id="u6">
+        <span class="stav">neběží</span>
         <h2>6 · Digitální I/O</h2>
         <span class="jazyk">Rust</span>
         <div class="leds"><span class="led" id="led1"></span><span class="led" id="led2"></span></div>
-        <p class="interval" id="interval">Program neběží</p>
+        <p class="text" id="interval">Program neběží</p>
         <button id="tlacitko">Stisknout tlačítko</button>
       </div>
-      <div class="uloha">
+      <div class="uloha" id="u7">
+        <span class="stav">neběží</span>
         <h2>7 · Analog I/O</h2>
         <span class="jazyk">C++ · fake analog input</span>
-        <div class="leds"><span class="led on" id="a-led1"></span><span class="led on" id="a-led2"></span></div>
-        <p class="interval" id="a-text">Program neběží</p>
+        <div class="leds"><span class="led on" id="a-led1" style="opacity: .15"></span><span class="led on" id="a-led2" style="opacity: .15"></span></div>
+        <p class="text" id="a-text">Program neběží</p>
         <input type="range" min="0" max="100" value="0" id="a-pot">
       </div>
-      <div class="uloha brzy"><h2>8 · Sběrnice I/O</h2>brzy</div>
+      <div class="uloha" id="u8">
+        <span class="stav">neběží</span>
+        <h2>8 · Sběrnice I/O</h2>
+        <span class="jazyk">C# · I2C + SPI</span>
+        <div class="displeje">
+          <div class="lcd" id="s-lcd">                <br>                </div>
+          <div class="matice" id="s-matice"></div>
+        </div>
+        <p class="text" id="s-text">Program neběží</p>
+        <input type="range" min="0" max="80" value="80" id="s-cm">
+      </div>
       <div class="uloha brzy"><h2>9 · RPi + Pico sběrnice</h2>brzy</div>
       <div class="uloha brzy"><h2>10 · RPi + Pico bezdrátově</h2>brzy</div>
     </div>
   </main>
 
   <script>
-    // Program úlohy 6 běží na stejném Pi na portu 8006.
-    const uloha6 = "http://" + (location.hostname || "127.0.0.1") + ":8006";
+    // Každá úloha běží na stejném Pi na vlastním portu 80xx. Vždy běží jen jedna.
+    const pi = "http://" + (location.hostname || "127.0.0.1");
 
-    async function cti() {
+    function bezi(uloha, ano) {
+      document.getElementById(uloha).classList.toggle("bezi", ano);
+      document.querySelector("#" + uloha + " .stav").textContent = ano ? "běží" : "neběží";
+    }
+
+    // Úloha 6: dvě LED a logické tlačítko.
+    async function cti6() {
       try {
-        const stav = await (await fetch(uloha6 + "/stav")).json();
+        const stav = await (await fetch(pi + ":8006/stav")).json();
         document.getElementById("led1").classList.toggle("on", stav.led1);
         document.getElementById("led2").classList.toggle("on", stav.led2);
         document.getElementById("interval").textContent = "Interval " + stav.interval + " ms";
+        bezi("u6", true);
       } catch {
         document.getElementById("interval").textContent = "Program neběží";
+        bezi("u6", false);
       }
-      setTimeout(cti, 100);
+      setTimeout(cti6, 100);
     }
 
-    document.getElementById("tlacitko").onclick = () => fetch(uloha6 + "/tlacitko", { method: "POST" });
-    cti();
+    document.getElementById("tlacitko").onclick = () => fetch(pi + ":8006/tlacitko", { method: "POST" });
+    cti6();
 
-    // Program úlohy 7 běží na portu 8007. Posuvník funguje jako logický potenciometr.
-    const uloha7 = "http://" + (location.hostname || "127.0.0.1") + ":8007";
+    // Úloha 7: jas dvou LED, posuvník funguje jako logický potenciometr.
     const pot = document.getElementById("a-pot");
-    let tahnu = false;
+    let tahnu7 = false;
 
     async function cti7() {
       try {
-        const stav = await (await fetch(uloha7 + "/stav")).json();
+        const stav = await (await fetch(pi + ":8007/stav")).json();
         document.getElementById("a-led1").style.opacity = 0.15 + stav.led1 / 120;
         document.getElementById("a-led2").style.opacity = 0.15 + stav.led2 / 120;
         document.getElementById("a-text").textContent =
           "Potenciometr " + stav.potenciometr + " % · nabití " + stav.cas + " µs" + (stav.logicky ? " · z dashboardu" : "");
-        if (!tahnu) pot.value = stav.potenciometr;
+        if (!tahnu7) pot.value = stav.potenciometr;
+        bezi("u7", true);
       } catch {
+        document.getElementById("a-led1").style.opacity = 0.15;
+        document.getElementById("a-led2").style.opacity = 0.15;
         document.getElementById("a-text").textContent = "Program neběží";
+        bezi("u7", false);
       }
       setTimeout(cti7, 100);
     }
 
-    pot.oninput = () => { tahnu = true; fetch(uloha7 + "/pot/" + pot.value, { method: "POST" }); };
-    pot.onchange = () => { tahnu = false; };
+    pot.oninput = () => { tahnu7 = true; fetch(pi + ":8007/pot/" + pot.value, { method: "POST" }); };
+    pot.onchange = () => { tahnu7 = false; };
     cti7();
+
+    // Úloha 8: kopie LCD a matice, posuvník předstírá vzdálenost.
+    const matice = document.getElementById("s-matice");
+    const cm = document.getElementById("s-cm");
+    let tahnu8 = false;
+    for (let i = 0; i < 64; i++) matice.append(document.createElement("span"));
+
+    // Stejná spirála jako v programu: od okraje po směru hodinových ručiček ke středu.
+    const spirala = [];
+    let horni = 0, dolni = 7, levy = 0, pravy = 7;
+    while (horni < dolni) {
+      for (let s = levy; s <= pravy; s++) spirala.push(horni * 8 + s);
+      for (let r = horni + 1; r <= dolni; r++) spirala.push(r * 8 + pravy);
+      for (let s = pravy - 1; s >= levy; s--) spirala.push(dolni * 8 + s);
+      for (let r = dolni - 1; r > horni; r--) spirala.push(r * 8 + levy);
+      horni++; dolni--; levy++; pravy--;
+    }
+
+    async function cti8() {
+      try {
+        const stav = await (await fetch(pi + ":8008/stav")).json();
+        document.getElementById("s-lcd").textContent = stav.lcd[0].padEnd(16) + "\n" + stav.lcd[1].padEnd(16);
+        const sviti = spirala.slice(64 - stav.led);
+        matice.querySelectorAll("span").forEach((led, i) => led.classList.toggle("on", sviti.includes(i)));
+        document.getElementById("s-text").textContent =
+          (stav.cm < 0 ? "Mimo rozsah" : stav.cm.toFixed(1) + " cm") + (stav.logicka ? " · z dashboardu" : "");
+        if (!tahnu8 && stav.cm >= 0) cm.value = stav.cm;
+        bezi("u8", true);
+      } catch {
+        document.getElementById("s-text").textContent = "Program neběží";
+        bezi("u8", false);
+      }
+      setTimeout(cti8, 100);
+    }
+
+    cm.oninput = () => { tahnu8 = true; fetch(pi + ":8008/vzdalenost/" + cm.value, { method: "POST" }); };
+    cm.onchange = () => { tahnu8 = false; };
+    cti8();
+
+    setInterval(() => {
+      document.getElementById("cas").textContent = new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
+    }, 1000);
   </script>
 </body>
 </html>
