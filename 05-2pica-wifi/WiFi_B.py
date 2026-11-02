@@ -7,7 +7,7 @@ import time
 WIFI_SSID = "PicoLink"
 WIFI_PASSWORD = "pico-link-123"
 PORT = 5005
-LED = Pin("LED", Pin.OUT)
+LED = Pin(14, Pin.OUT)     # LED through 2x 180 ohm to GP14
 BUZZER = Pin(15, Pin.OUT)  # Active 2-wire buzzer: + to GP15, - to GND
 
 ap = network.WLAN(network.AP_IF)
