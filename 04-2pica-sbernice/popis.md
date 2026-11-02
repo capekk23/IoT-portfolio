@@ -2,9 +2,9 @@ Dvě Pica spolu mluví po sběrnici I2C.
 Pico A (controller) po stisku tlačítka pošle na adresu 0x42 písmeno „T“.
 Pico B (target) ho přijme, přepne LED a krátce pípne bzučákem.
 
-Pico A má program [I2C.py](I2C.py). Pico B má vlastní program a pomocný soubor `i2c_slave.py`, který nastaví I2C jako target.
-V `i2c_slave.py` musí být na pinech SDA a SCL zapnutý vnitřní pull-up, jinak sběrnice nefunguje:
-`machine.Pin(pin, machine.Pin.IN, machine.Pin.PULL_UP)` na začátku smyčky `for pin in (sda, scl):`.
+Pico A má program [I2C.py](I2C.py), Pico B program [I2C_B.py](I2C_B.py).
+Pico B používá `machine.I2CTarget`, které je v MicroPythonu od verze 1.25. Na Picu B proto musí být MicroPython 1.25 nebo novější.
+Pull-upy na SDA a SCL zapíná I2C na Picu A.
 
 ```text
 Pico A                           Pico B
