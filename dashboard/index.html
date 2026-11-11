@@ -136,10 +136,11 @@
       <div class="uloha" id="u9">
         <span class="stav">neběží</span>
         <h2>9 · RPi + Pico sběrnice</h2>
-        <span class="jazyk">Ruby + MicroPython · I2C</span>
-        <div class="leds"><span class="led" id="p-led"></span></div>
+        <span class="jazyk">Ruby + MicroPython · I2C · Pico jako ADC</span>
+        <div class="leds"><span class="led on" id="p-led" style="opacity: .15"></span></div>
         <p class="text" id="p-text">Program neběží</p>
-        <button id="p-tlacitko">Stisknout tlačítko</button>
+        <input type="range" min="0" max="100" value="0" id="p-jas">
+        <button id="p-tlacitko" style="margin-top: 14px">Stisknout tlačítko</button>
       </div>
       <div class="uloha brzy"><h2>10 · RPi + Pico bezdrátově</h2>brzy</div>
     </div>
@@ -236,21 +237,29 @@
     cm.onchange = () => { tahnu8 = false; };
     cti8();
 
-    // Úloha 9: LED na Picu, její stav Pi čte z Pica po I2C.
+    // Úloha 9: Pi čte potenciometr z Pica po I2C a posílá mu zpátky jas LED.
+    const jas = document.getElementById("p-jas");
+    let tahnu9 = false;
+
     async function cti9() {
       try {
         const stav = await (await fetch(pi + ":8009/stav")).json();
-        document.getElementById("p-led").classList.toggle("on", stav.led == 1);
+        document.getElementById("p-led").style.opacity = stav.led ? 0.15 + stav.jas / 120 : 0.15;
         document.getElementById("p-text").textContent =
-          "LED na Picu " + (stav.led ? "svítí" : "nesvítí") + " · " + stav.stisky + " stisků";
+          "Potenciometr " + stav.pot + " % · jas " + stav.jas + " % · LED " + (stav.led ? "zapnutá" : "vypnutá") +
+          (stav.logicky ? " · z dashboardu" : "");
+        if (!tahnu9) jas.value = stav.jas;
         bezi("u9", true);
       } catch {
+        document.getElementById("p-led").style.opacity = 0.15;
         document.getElementById("p-text").textContent = "Program neběží";
         bezi("u9", false);
       }
-      setTimeout(cti9, 200);
+      setTimeout(cti9, 150);
     }
 
+    jas.oninput = () => { tahnu9 = true; fetch(pi + ":8009/jas/" + jas.value, { method: "POST" }); };
+    jas.onchange = () => { tahnu9 = false; };
     document.getElementById("p-tlacitko").onclick = () => fetch(pi + ":8009/tlacitko", { method: "POST" });
     cti9();
 

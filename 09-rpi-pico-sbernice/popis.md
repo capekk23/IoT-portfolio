@@ -1,6 +1,6 @@
-Raspberry Pi 4 a Pico spolu mluví po sběrnici I2C. Pi je controller, Pico je target na adrese 0x42.
-Po stisku tlačítka na Pi pošle Pi na Pico písmeno „T“; Pico přepne LED a krátce pípne.
-Pi pak z Pica po stejné sběrnici přečte, jestli LED svítí, a ukáže to na dashboardu. Dashboard má i logické tlačítko.
+Raspberry Pi 4 nemá analogový vstup, a tak si ho po sběrnici I2C vypůjčí od Pica: Pico měří potenciometr a Pi si hodnotu přečte.
+Pi podle potenciometru pošle Picu zpátky jas LED, takže hodnota udělá kolečko Pico → I2C → Pi → I2C → Pico.
+Tlačítko na Pi LED na Picu zapíná a vypíná, dashboard ukazuje potenciometr a jas a má logické tlačítko i posuvník jasu.
 
 | Odkud | Kam |
 |---|---|
@@ -8,6 +8,9 @@ Pi pak z Pica po stejné sběrnici přečte, jestli LED svítí, a ukáže to na
 | Pi pin 5 (GPIO3, I2C SCL) | Pico pin 2 (GP1, I2C0 SCL) |
 | Pi pin 9 (GND) | Pico pin 3 (GND) |
 | Pi pin 11 (GPIO17) | tlačítko → Pi pin 14 (GND) |
+| Pico pin 36 (3V3 OUT) | krajní vývod potenciometru |
+| Pico pin 31 (GP26, ADC0) | jezdec potenciometru (prostřední vývod) |
+| Pico pin 38 (GND) | druhý krajní vývod potenciometru |
 | Pico pin 19 (GP14) | 180 Ω → 180 Ω → LED (+), dlouhá nožička |
 | LED (−), krátká nožička | Pico pin 18 (GND) |
 | Pico pin 20 (GP15) | bzučák (+) (aktivní bzučák) |
@@ -17,6 +20,14 @@ U I2C se vodiče nekříží: SDA vede na SDA a SCL na SCL. Země Pi a Pica mus�
 Pico napájej vlastním USB (třeba z USB portu Pi). Napájecí piny 3,3 V ani 5 V mezi Pi a Picem nepropojuj.
 Pull-up rezistory na SDA a SCL už má Pi na desce, na 3,3 V, takže pro Pico jsou v pořádku.
 Čísla pinů v tabulce jsou **fyzická**. Pi v programu používá čísla **BCM GPIO**, Pico v `Pin(...)` čísla **GP**.
+
+Pi a Pico si po I2C posílají jednoduchý vlastní protokol (Pico má adresu 0x42):
+
+| Pi pošle / čte | Význam |
+|---|---|
+| zápis `T` | přepni LED (a pípni) |
+| zápis `J` a číslo 0–100 | nastav jas LED v % |
+| čtení 3 bajtů | LED zapnutá (0/1), potenciometr v %, jas v % |
 
 Na Pico nahraj [pico.py](pico.py) jako `main.py`. Používá `machine.I2CTarget`, takže na Picu musí být MicroPython 1.25 nebo novější.
 
@@ -28,5 +39,6 @@ sudo apt install ruby
 ruby rpi.rb
 ```
 
-Program zároveň běží jako malý web na portu 8009: `GET /stav` vrátí stav LED přečtený z Pica a počet stisků, `POST /tlacitko` je logické tlačítko.
+Program zároveň běží jako malý web na portu 8009: `GET /stav` vrátí stav LED, potenciometr a jas, `POST /tlacitko` je logické tlačítko a `POST /jas/50` nastaví jas.
+Jas z dashboardu platí, dokud se nepohne skutečným potenciometrem.
 Vždy běží jen jedna úloha, před spuštěním zastav program úlohy 8. Program ukončíš pomocí Ctrl+C.
