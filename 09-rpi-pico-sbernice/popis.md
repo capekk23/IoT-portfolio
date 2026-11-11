@@ -42,3 +42,5 @@ ruby rpi.rb
 Program zároveň běží jako malý web na portu 8009: `GET /stav` vrátí stav LED, potenciometr a jas, `POST /tlacitko` je logické tlačítko a `POST /jas/50` nastaví jas.
 Jas z dashboardu platí, dokud se nepohne skutečným potenciometrem.
 Vždy běží jen jedna úloha, před spuštěním zastav program úlohy 8. Program ukončíš pomocí Ctrl+C.
+
+[Video zapojení](fotky/proof.mp4)

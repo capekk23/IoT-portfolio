@@ -34,3 +34,5 @@ dotnet run -c Release
 Program zároveň běží jako malý web na portu 8008: `GET /stav` vrátí vzdálenost, počet svítících LED a text LCD, `POST /vzdalenost/30` předstírá 30 cm na 3 s.
 Dashboard ([dashboard/index.html](../dashboard/index.html)) ukazuje kopii LCD a matice a posuvníkem nahrazuje senzor.
 Vždy běží jen jedna úloha. Program ukončíš pomocí Ctrl+C.
+
+[Video zapojení](fotky/proof.mp4)
