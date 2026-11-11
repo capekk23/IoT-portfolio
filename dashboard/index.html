@@ -133,7 +133,14 @@
         <p class="text" id="s-text">Program neběží</p>
         <input type="range" min="0" max="80" value="80" id="s-cm">
       </div>
-      <div class="uloha brzy"><h2>9 · RPi + Pico sběrnice</h2>brzy</div>
+      <div class="uloha" id="u9">
+        <span class="stav">neběží</span>
+        <h2>9 · RPi + Pico sběrnice</h2>
+        <span class="jazyk">Ruby + MicroPython · I2C</span>
+        <div class="leds"><span class="led" id="p-led"></span></div>
+        <p class="text" id="p-text">Program neběží</p>
+        <button id="p-tlacitko">Stisknout tlačítko</button>
+      </div>
       <div class="uloha brzy"><h2>10 · RPi + Pico bezdrátově</h2>brzy</div>
     </div>
   </main>
@@ -228,6 +235,24 @@
     cm.oninput = () => { tahnu8 = true; fetch(pi + ":8008/vzdalenost/" + cm.value, { method: "POST" }); };
     cm.onchange = () => { tahnu8 = false; };
     cti8();
+
+    // Úloha 9: LED na Picu, její stav Pi čte z Pica po I2C.
+    async function cti9() {
+      try {
+        const stav = await (await fetch(pi + ":8009/stav")).json();
+        document.getElementById("p-led").classList.toggle("on", stav.led == 1);
+        document.getElementById("p-text").textContent =
+          "LED na Picu " + (stav.led ? "svítí" : "nesvítí") + " · " + stav.stisky + " stisků";
+        bezi("u9", true);
+      } catch {
+        document.getElementById("p-text").textContent = "Program neběží";
+        bezi("u9", false);
+      }
+      setTimeout(cti9, 200);
+    }
+
+    document.getElementById("p-tlacitko").onclick = () => fetch(pi + ":8009/tlacitko", { method: "POST" });
+    cti9();
 
     setInterval(() => {
       document.getElementById("cas").textContent = new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
